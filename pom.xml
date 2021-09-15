@@ -72,21 +72,7 @@
       <artifactId>commons-lang3</artifactId>
       <version>3.12.0</version>
     </dependency>
-
-    <!-- https://github.com/lviggiano/owner -->
-    <dependency>
-      <groupId>org.aeonbits.owner</groupId>
-      <artifactId>owner-java8</artifactId>
-      <version>1.0.12</version>
-    </dependency>
-
   </dependencies>
-
-  <scm>
-    <connection>scm:git:https://github.com/Polve/bitcoin-rpc-client</connection>
-    <developerConnection>scm:git:https://github.com/Polve/bitcoin-rpc-client.git</developerConnection>
-    <url>scm:git:https://github.com/Polve/bitcoin-rpc-client</url>
-  </scm>
 
   <distributionManagement>
     <repository>
@@ -110,35 +96,34 @@
           </execution>
         </executions>
       </plugin>
-    </plugins>
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-release-plugin</artifactId>-->
-<!--        <version>2.5.3</version>-->
-<!--        <configuration>-->
-<!--          <autoVersionSubmodules>true</autoVersionSubmodules>-->
-<!--          <useReleaseProfile>true</useReleaseProfile>-->
-<!--          <releaseProfiles>release</releaseProfiles>-->
-<!--          <goals>deploy</goals>-->
-<!--        </configuration>-->
-<!--      </plugin>-->
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-javadoc-plugin</artifactId>-->
-<!--        <version>3.0.0</version>-->
-<!--        <executions>-->
-<!--          <execution>-->
-<!--            <id>attach-javadocs</id>-->
-<!--            <goals>-->
-<!--              <goal>jar</goal>-->
-<!--            </goals>-->
-<!--            <configuration>-->
-<!--              <additionalOptions>-Xdoclint:none</additionalOptions>-->
-<!--              <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>-->
-<!--            </configuration>-->
-<!--          </execution>-->
-<!--        </executions>-->
-<!--      </plugin>-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.3</version>
+        <configuration>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <useReleaseProfile>true</useReleaseProfile>
+          <releaseProfiles>release</releaseProfiles>
+          <goals>deploy</goals>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <additionalOptions>-Xdoclint:none</additionalOptions>
+              <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
 <!--      <plugin>-->
 <!--        <groupId>org.apache.maven.plugins</groupId>-->
 <!--        <artifactId>maven-gpg-plugin</artifactId>-->
@@ -168,7 +153,7 @@
 <!--          <autoReleaseAfterClose>true</autoReleaseAfterClose>-->
 <!--        </configuration>-->
 <!--      </plugin>-->
-<!--    </plugins>-->
+    </plugins>
   </build>
 
     <!-- Generate the changelog -->

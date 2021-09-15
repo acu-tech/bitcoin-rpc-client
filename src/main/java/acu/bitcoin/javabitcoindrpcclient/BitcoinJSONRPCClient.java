@@ -21,8 +21,6 @@
 package acu.bitcoin.javabitcoindrpcclient;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -33,8 +31,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,8 +40,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,11 +49,9 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
 
-import acu.bitcoin.javabitcoindrpcclient.config.RpcClientConfig;
 import acu.bitcoin.krotjson.Base64Coder;
 import acu.bitcoin.krotjson.HexCoder;
 import acu.bitcoin.krotjson.JSON;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -82,111 +74,6 @@ public class BitcoinJSONRPCClient implements BitcoindRpcClient {
     String password = "pass";
     String host = "localhost";
     String port = null;
-
-    try {
-      File configFile = null;
-      File home = new File(System.getProperty("user.home"));
-      String manuallyConfiguredDataFolderPath = RpcClientConfig.get().bitcoinCoreDataFolder();
-
-      if (!StringUtils.isEmpty(manuallyConfiguredDataFolderPath) &&
-    		  (configFile = new File(manuallyConfiguredDataFolderPath, "bitcoin.conf")
-    		  ).exists())
-      {
-    	  // Look for the config file in the configured bitcoin core data folder
-    	  logger.fine("Using configured data dir: " + manuallyConfiguredDataFolderPath);
-      }
-      else if ((configFile = new File(home, ".bitcoin" + File.separatorChar +
-    		  							"bitcoin.conf")
-    		  ).exists())
-      {
-    	  // Look for the config file on the Linux path
-      }
-      else if ((configFile = new File(home, "snap" + File.separatorChar +
-    		  								"bitcoin-core" + File.separatorChar +
-    		  								"common" + File.separatorChar +
-    		  								".bitcoin" + File.separatorChar +
-    		  								"bitcoin.conf")
-    		  ).exists())
-      {
-    	  // Look for the config file on the Linux path, when bitcoind was installed via snap
-    	  // Path is: ~/snap/bitcoin-core/common/.bitcoin/bitcoin.conf
-      }
-      else if ((configFile = new File(home, "AppData" + File.separatorChar +
-    		  								"Roaming" + File.separatorChar +
-    		  								"Bitcoin" + File.separatorChar +
-    		  								"bitcoin.conf")
-    		  ).exists())
-      {
-    	  // Look for the cofig file on the Windows path
-      } else
-        configFile = null;
-
-      // If config file is found, attempt to parse its contents
-      if (configFile != null) {
-        logger.fine("Bitcoin configuration file: " + configFile);
-
-        Properties configProps = new Properties();
-        try (FileInputStream i = new FileInputStream(configFile)) {
-          configProps.load(i);
-        }
-
-        user = configProps.getProperty("rpcuser", user);
-        password = configProps.getProperty("rpcpassword", password);
-        host = configProps.getProperty("rpcconnect", host);
-        port = configProps.getProperty("rpcport", port);
-
-        // rpcuser and rpcpassword are being phased out of bitcoind
-        // bitcoind shows this warning when these configs are used:
-        // "Config options rpcuser and rpcpassword will soon be deprecated. Locally-run instances may remove rpcuser to use cookie-based auth, or may be replaced with rpcauth"
-        // Two alternatives for authentication are offered:
-        // 1) the config rpcauth, which has the format {0}:{1}${2} containing username, salt, password_hmac
-        // See https://github.com/bitcoin/bitcoin/tree/master/share/rpcauth
-        // However, this only contains a hash of the password
-        // This means the password (which is needed in cleartext for authenticaton) cannot be retrieved anymore from bitcoin.conf
-        // 2) the .cookie temporary file
-        // When bitcoind starts (and rpcuser / rpcauth are not used), it creates a temporary .cookie file
-        // This contains a temporary password for the RPC API
-        // The .cookie file is automatically deleted when bitcoind is stopped
-        // Option 2) seems like the best one to use for this client, so warn user if rpcuser / rpcpassword are still used
-
-        // Show warning if legacy auth mechanism (using rpcuser / rpcpassword) detected
-        if (configProps.getProperty("rpcuser") != null || configProps.getProperty("rpcpassword") != null)
-        {
-        	logger.warning("Currently relying on rpcuser / rpcpassword for authentication. "
-        			+ "This will soon be deprecated in bitcoind. "
-        			+ "To use newer auth mechanism based on a temporary password, remove properties rpcuser / rpcpassword from bitcoin.conf");
-        }
-
-        // Also show warning if rpcauth mechanism is detected
-        if (configProps.getProperty("rpcauth") != null)
-        {
-        	logger.severe("Currently relying on rpcauth mechanism for authentication. "
-        			+ "This cannot be used by this library, because the password needed for API authentication cannot be retrieved from bitcoin.conf. "
-        			+ "To use newer auth mechanism based on a temporary password, remove the property rpcauth from bitcoin.conf");
-        }
-
-        // Look for .cookie file, which is in a subfolder of the .bitcoin folder
-        // Subfolder is one of regtest, testnet3, or mainnet - depending on which mode bitcoind is currently using
-        Optional<Path> cookieFile = Files.walk(configFile.getParentFile().toPath())
-        		.filter(f -> f.toFile().getName().equals(".cookie"))
-        		.findFirst();
-
-        if (cookieFile.isPresent())
-        {
-        	Path cookieFilePath = cookieFile.get();
-
-            // Format is __cookie__:tempPassword
-            String cookieFileContents = new String(Files.readAllBytes(cookieFilePath));
-
-            String[] temp = cookieFileContents.split(":");
-            user = temp[0];
-            password = temp[1];
-        }
-      }
-
-    } catch (Exception ex) {
-      logger.log(Level.SEVERE, null, ex);
-    }
 
     try {
       DEFAULT_JSONRPC_URL = new URL("http://" + user + ':' + password + "@" + host + ":" + (port == null ? "8332" : port) + "/");
